@@ -1,4 +1,6 @@
 package Anthill::Ant;
+# VERSION
+# ABSTRACT: Anthill::Ant object
 use Modern::Perl;
 use Win32;
 use Win32::Process;
@@ -8,6 +10,8 @@ use Cwd qw(cwd);
 #TODO: allow to spawn a command OR a callback ( need to be registered to the plugin )
 #	+ Maximize separation bertween Ant and command/callback for job->finish/fail
 #	+ wrap within try/catch
+#	++ add ENV variable to share ANT infos:
+#	++ ANT_ID, ...
 sub new{
 	my ($class, $anthill) = (shift, shift );
 	if(@_ == 1 ){
@@ -280,10 +284,18 @@ sub _get_process_object{
 
 sub wait{
 	my $self = shift;
-	my $process = $self->_get_process_object or return;
+	my $process = $self->_get_process_object 
+		or return $self;
 	$process->Wait( shift // INFINITE );
+	$self;
 }
 
+sub still_active{
+	my $self = shift;
+	my $process = $self->_get_process_object or return;
+	$process->GetExitCode(my $exitcode);
+	$exitcode == Win32::Process::STILL_ACTIVE();
+}
 
 #Resume / Suspend (may not works with re-attached Ant(need to keep track of original $process object)
 sub resume{
