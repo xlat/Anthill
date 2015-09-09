@@ -313,13 +313,15 @@ sub suspend{
 	$self->_get_process_object->Suspend;
 }
 
+#kill( [$pid], $exit_with_code )
 sub kill{
 	my $self = shift;
 	#~ my $process = $self->_get_process_object or return;
 	#~ $process->Kill( my $exitcode );
-	my $pid = shift || $self->pid;
-	Win32::Process::KillProcess( $pid, my $exitcode );
-	return $exitcode;
+	my $pid = @_==2 ? shift || $self->pid : $self->pid;
+	my $exit_with_code = shift // 0;
+	Win32::Process::KillProcess( $pid, $exit_with_code );
+	return $self->exitcode;
 }
 
 sub exitcode{
