@@ -3,6 +3,7 @@ package Anthill;
 # ABSTRACT: Yet another process spawner
 use Modern::Perl;
 use DBIx::Simple;
+use SQL::Abstract;
 use Anthill::Ant;
 
 sub new{
@@ -30,7 +31,7 @@ sub new{
 		$self->{sqls} = {
 			sqlite => {
 				deploy  => <<'DEPLOY',
-create table ant(
+create table if not exists ant(
 	id integer not null primary key autoincrement,
 	name nvarchar(200) not null,
 	state varchar(10) not null default 'inactive',
@@ -44,27 +45,34 @@ DEPLOY
 				last_id => q{select id from ant order by id desc limit 1},
 				select  => q{select ${field} from ant where id = ${id}},
 				update  => q{update ant set ${field}='${value}' where id = '${id}'},
+				list    => q{select id from ant ${where} order by id desc},
 			},
 			ado => {
 				deploy  => <<'DEPLOY',
-create schema anthill AUTHORIZATION ${owner};
+if SCHEMA_ID('anthill') is null 
+begin
+	exec sp_executesql N'create schema anthill AUTHORIZATION ${owner}';
+end	
 go
+if OBJECT_ID('anthill.ant') is null
+begin
 create table anthill.ant(
 	id int not null identity primary key,
 	name nvarchar(200) not null,
 	state varchar(10) not null default 'inactive',
 	args nvarchar(max) null,
 	start_args nvarchar(max) null,
-	start_args nvarchar(max) null,
 	result nvarchar(max) null,
 	pid int null
 );
+end
 go
 DEPLOY
-				insert  => q{insert into ant(name, args, start_args) values('${name}','${args}','${start_args}')},
+				insert  => q{insert into anthill.ant(name, args, start_args) values('${name}','${args}','${start_args}')},
 				last_id => q{select top 1 id from anthill.ant order by id desc},
 				select  => q{select ${field} from anthill.ant where id = ${id}},
 				update  => q{update anthill.ant set ${field}='${value}' where id = '${id}'},
+				list	=> q{select id from anthill.ant ${where} order by id desc},
 			}
 		}->{$DRIVER} 
 		or die "Could not find SQL for your driver '$DRIVER'";
@@ -78,7 +86,12 @@ sub sql{
 	my $sql = $self->{sqls}{$cmd} 
 		or die "unknow sql command '$cmd'!";
 	while(my($param_name, $param_value) = each %$binds){
-		$param_value =~ s/'/''/g;
+		if(ref $param_value){
+			$param_value = $$param_value;
+		}
+		else{
+			$param_value =~ s/'/''/g;
+		}
 		$sql =~ s/\$\{$param_name\}/$param_value/g;
 	}
 	$sql;
@@ -95,14 +108,32 @@ sub ant{ #return an existing Anthill::Ant object or create a new one
 	new Anthill::Ant( @_ );
 }
 
+sub ants{#return a list of Anthill::Ant objects matching filters given in arguments
+	my ($self, %filters) = @_;
+	my $where = "";
+	my @binds;
+	if(%filters){
+		my $sql_abstract = SQL::Abstract->new;
+		($where ,@binds) = $sql_abstract->where( \%filters );
+		#manually interpolate where for ADO & MSS
+		s/'/''/g for @binds;
+		s/(.*)/'$1'/ for @binds;
+		$where =~ s/\?/shift(@binds)/ge;
+		@binds = ();
+	}
+	my $sql = $self->sql(list => { where => \$where });
+	my @ants = map{ $self->ant($_) } 
+			   $self->dbixs->query($sql, @binds)->flat;
+	return @ants;
+}
+
 sub deploy_script{
 	my $class = shift;
 	my $dbh = shift;
 	my $owner = shift // 'dbo';
 	my $driver = $dbh->{Driver}{Name};
-	return $class
-					->new({dbh=>$dbh})
-					->sql(deploy => { owner => $owner });
+	return $class->new({dbh=>$dbh})
+				 ->sql(deploy => { owner => $owner });
 }
 
 1;

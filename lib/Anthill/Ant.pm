@@ -10,8 +10,7 @@ use Cwd qw(cwd);
 #TODO: allow to spawn a command OR a callback ( need to be registered to the plugin )
 #	+ Maximize separation bertween Ant and command/callback for job->finish/fail
 #	+ wrap within try/catch
-#	++ add ENV variable to share ANT infos:
-#	++ ANT_ID, ...
+#	++ add ENV variable to share spawned ANT infos:  ANT_ID and maybe others
 sub new{
 	my ($class, $anthill) = (shift, shift );
 	if(@_ == 1 ){
@@ -128,14 +127,14 @@ sub finish{ #change ant state as finished
 	my $self = shift;
 	$self->state('finished');
 	if( my $result = shift ){
-		$self->set_field( result => encode_json($result) );    
+		$self->_set_field( result => encode_json($result) );
 	}
 }
 sub fail{ #change ant state as failed
 	my $self = shift;
 	$self->state('failed');
 	if( my $result = shift ){
-		$self->set_field( result => encode_json($result) );    
+		$self->_set_field( result => encode_json($result) );
 	}
 }
 
@@ -235,7 +234,7 @@ sub spawn_perl_command{
         my $cmd2 = $debug 
 				? "$cmd /C start \"$title\" \"$^X\" -d" 
 				: $^X;
-        my $full_command = qq{$cmd2 $worker_script } . 
+        my $full_command = qq{"$cmd2" $worker_script } . 
 							join (' ', $command, @$arguments);
         if ($debug && $self->app) {
             $self->app->log->debug("Spawning a '$command' perl command:\n".
