@@ -232,9 +232,9 @@ sub spawn_perl_command{
 			$title =~ s/\%id%/$ant_id/g;
 		}
         my $cmd2 = $debug 
-				? "$cmd /C start \"$title\" \"$^X\" -d" 
-				: $^X;
-        my $full_command = qq{"$cmd2" $worker_script } . 
+				? qq{"$cmd" /C start "$title" "$^X" -d} 
+				: qq{"$^X"};
+        my $full_command = qq{$cmd2 $worker_script } . 
 							join (' ', $command, @$arguments);
         if ($debug && $self->app) {
             $self->app->log->debug("Spawning a '$command' perl command:\n".
