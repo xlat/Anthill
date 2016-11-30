@@ -51,7 +51,7 @@ DEPLOY
 				deploy  => <<'DEPLOY',
 if SCHEMA_ID('anthill') is null 
 begin
-	exec sp_executesql N'create schema anthill AUTHORIZATION ${owner}';
+	exec sp_executesql N'create schema anthill AUTHORIZATION [${owner}]';
 end	
 go
 if OBJECT_ID('anthill.ant') is null
