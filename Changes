@@ -2,5 +2,6 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 	Fix debug mode within Anthill::Ant::spawn_perl_command()
+	Handle owner with hyphens (or space) (emmanueldupuis)
 0.152521  2015-09-09 15:40:57+02:00 Europe/Paris
 	First release to an unexpected world.
