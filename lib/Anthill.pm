@@ -107,6 +107,11 @@ sub dbh{
 }
 sub dbixs{ 
 	my $self = shift;
+	if(ref $self->{dbh} eq 'CODE') {
+		#always rebuild object in case dbh has changed
+		#and keep a reference
+		return $self->{dbixs} = DBIx::Simple->new( $self->dbh );
+	}	
 	$self->{dbixs} //= DBIx::Simple->new( $self->dbh );
 }
 
