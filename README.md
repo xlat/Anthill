@@ -4,7 +4,7 @@ Anthill - Yet another process spawner
 
 # VERSION
 
-version 0.163350
+version 0.183230
 
 # SYNOPSIS
 

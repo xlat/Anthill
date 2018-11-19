@@ -98,10 +98,16 @@ sub sql{
 }
 
 sub app{ shift->{app} }
-sub dbh{ shift->{dbh} }
+sub dbh{ 
+	my $dbh = shift->{dbh};
+	if(ref $dbh eq 'CODE'){
+		$dbh = $dbh->();
+	}
+	$dbh;
+}
 sub dbixs{ 
 	my $self = shift;
-	$self->{dbixs} //= DBIx::Simple->new( $self->{dbh} );
+	$self->{dbixs} //= DBIx::Simple->new( $self->dbh );
 }
 
 sub ant{ #return an existing Anthill::Ant object or create a new one
