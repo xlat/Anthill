@@ -13,7 +13,19 @@ is ref($anthill), 'Anthill', 'new Anthill';
 my $dbh = $anthill->dbh;
 is ref($dbh), 'DBI::db', 'anthill db handle';
 #deploying
-ok $dbh->do( Anthill->deploy_script( $dbh ) ), 'deploy anthill';
+if ($is_sqlite) {
+  ok $dbh->do( Anthill->deploy_script( $dbh ) ), 'deploy anthill';
+} else {
+  eval {
+    $dbh->do(q/if OBJECT_ID('anthill.ant') is not null drop table anthill.ant/);
+    $dbh->do(q/if SCHEMA_ID('anthill') is not null drop schema anthill/);
+    foreach my $req (grep $_, split /\bgo\b/, Anthill->deploy_script( $dbh )) { 
+      note('executing: ' . $req);
+      $dbh->do( $req );
+    }
+  };
+  is "$@", '', 'deploy anthill';
+}
 #spawn an ant and retrieve it's ID
 my $ant = $anthill->ant( 'my ant#1' => [42] );
 is ref($ant), 'Anthill::Ant', 'new ant';
