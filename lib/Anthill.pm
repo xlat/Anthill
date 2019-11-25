@@ -1,5 +1,6 @@
 package Anthill;
 # VERSION
+
 # ABSTRACT: Yet another process spawner
 use Modern::Perl;
 use DBIx::Simple;
@@ -42,7 +43,7 @@ create table if not exists ant(
 );
 DEPLOY
 				insert  => q{insert into ant(name, args, start_args) values('${name}','${args}','${start_args}')},
-				last_id => q{select id from ant order by id desc limit 1},
+				last_id => q{select last_insert_rowid() as id},
 				select  => q{select ${field} from ant where id = ${id}},
 				update  => q{update ant set ${field}='${value}' where id = '${id}'},
 				list    => q{select id from ant ${where} order by id desc},
@@ -69,7 +70,8 @@ end
 go
 DEPLOY
 				insert  => q{insert into anthill.ant(name, args, start_args) values('${name}','${args}','${start_args}')},
-				last_id => q{select top 1 id from anthill.ant order by id desc},
+				# using SCOPE_IDENTITY() instead of IDENT_CURRENT() to prevent races between different sessions
+				last_id => q{select SCOPE_IDENTITY() as id},
 				select  => q{select ${field} from anthill.ant where id = ${id}},
 				update  => q{update anthill.ant set ${field}='${value}' where id = '${id}'},
 				list	=> q{select id from anthill.ant ${where} order by id desc},
@@ -157,7 +159,7 @@ Anthill - Yet another process spawner
 
 =head1 SYNOPSIS
 
-    my $anthill = Anthill->new("sqlite-anthill.db');
+    my $anthill = Anthill->new('sqlite-anthill.db');
 	$anthill
 	->ant( 'ant#1'=> [ foo, {bar => 'baz'} ] )
 	->start_args(perl_command => {
