@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+	Use connection-dependant functions to retrieve last_id (emmanueldupuis)
+0.183230  2018-11-19 14:41:14+01:00 Europe/Paris
 	Fix debug mode within Anthill::Ant::spawn_perl_command()
 	Handle owner with hyphens (or space) (emmanueldupuis)
 0.152521  2015-09-09 15:40:57+02:00 Europe/Paris

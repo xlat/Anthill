@@ -1,5 +1,6 @@
 package Anthill;
 # VERSION
+
 # ABSTRACT: Yet another process spawner
 use Modern::Perl;
 use DBIx::Simple;
@@ -158,7 +159,7 @@ Anthill - Yet another process spawner
 
 =head1 SYNOPSIS
 
-    my $anthill = Anthill->new("sqlite-anthill.db');
+    my $anthill = Anthill->new('sqlite-anthill.db');
 	$anthill
 	->ant( 'ant#1'=> [ foo, {bar => 'baz'} ] )
 	->start_args(perl_command => {

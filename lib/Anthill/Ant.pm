@@ -1,5 +1,6 @@
 package Anthill::Ant;
 # VERSION
+
 # ABSTRACT: Anthill::Ant object
 use Modern::Perl;
 use Win32;
