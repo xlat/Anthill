@@ -1,16 +1,18 @@
 os: windows
 
-language: perl
-perl:
-  - "5.22"
-  - "5.20.1"
+#language: perl
+#perl:
+#  - "5.22"
+#  - "5.20.1"
 
 sudo: false
 
 before_install:
   - git clone git://github.com/haarg/perl-travis-helper
+  - choco install strawberryperl
+#  - choco install strawberryperl --version=5.20.1.1
   - source perl-travis-helper/init
-  - build-perl
+#  - build-perl
   - perl -V
   - build-dist
   - cd $BUILD_DIR
