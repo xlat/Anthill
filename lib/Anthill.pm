@@ -70,8 +70,8 @@ end
 go
 DEPLOY
 				insert  => q{insert into anthill.ant(name, args, start_args) values('${name}','${args}','${start_args}')},
-				# using SCOPE_IDENTITY() instead of IDENT_CURRENT() to prevent races between different sessions
-				last_id => q{select SCOPE_IDENTITY() as id},
+				# using @@IDENTITY instead of IDENT_CURRENT() to prevent races between different sessions
+				last_id => q{select @@IDENTITY as id},
 				select  => q{select ${field} from anthill.ant where id = ${id}},
 				update  => q{update anthill.ant set ${field}='${value}' where id = '${id}'},
 				list	=> q{select id from anthill.ant ${where} order by id desc},
